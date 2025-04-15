@@ -1,0 +1,13 @@
+services:
+  box_counter:
+    build: .
+    container_name: box_counter
+    volumes:
+      - ./images:/root/images
+      - ./results:/root/results
+      - ./check_files.py:/root/check_files.py
+    working_dir: /root
+    tty: true
+    stdin_open: true
+    entrypoint: >
+      bash -c "python3 check_files.py && cat results/result.csv"
