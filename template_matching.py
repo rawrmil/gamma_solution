@@ -28,6 +28,7 @@ def load_templates(tdir):
 
 def find_templates(img, templ_group, thr, col):
     templs = load_templates(templ_group)
+    all_res_points = []
     for e in templs:
         ls_template = e
         ls_results = cv2.matchTemplate(img, ls_template, cv2.TM_CCOEFF_NORMED)
@@ -38,23 +39,57 @@ def find_templates(img, templ_group, thr, col):
                 if i != j and math.dist(res_points[i], res_points[j]) < dis:
                     res_points.pop(i)
                     break
-                
+        all_res_points += res_points
         show_matching_results(img, ls_template, res_points, col)
-        cv2.namedWindow('Image', cv2.WINDOW_NORMAL)
-        cv2.resizeWindow('Image', 800, 600)
+    return all_res_points
 
-for i in range(len(ds)):
-    for k in ['left', 'right']:
+def group_columns(points):
+    points = points[:]
+    groups = {}
+    for i, e in enumerate(points):
+        r = round(e[0]/30)*30
+        if groups.get(r) == None:
+            groups[r] = []
+        groups[r].append(e[0])
+    return list(groups.values())
+
+csv_entries = "dir_name,laptop,tablet,group_box\n"
+
+#cv2.namedWindow('Image', cv2.WINDOW_NORMAL)
+#cv2.resizeWindow('Image', 800, 600)
+
+cnt_right = 0
+for i in range(1, len(ds)):
+    res_sticker = [0]*2
+    res_top = [0]*2
+    for j, k in enumerate(['left', 'right']):
         test_entry = ds[i][0]
         print(f"{test_entry}/{k}.png")
         img = cv2.imread(f"{test_entry}/{k}.png")
         img = img[0:1041, 405:1464]
         #find_templates(img, './templates/tablet_sticker', 0.75, (255, 0, 0))
-        find_templates(img, './templates/laptop_sticker', 0.75, (255, 0, 0))
-        find_templates(img, './templates/laptop_top', 0.75, (0, 255, 0))
-        cv2.imshow('Image', img)
-        while True:
-            key = cv2.waitKey(1)
-            if key == ord('q'):
-                break
+        res_sticker[j] = find_templates(img, './templates/laptop_sticker', 0.75, (255, 0, 0))
+        res_top[j] = find_templates(img, './templates/laptop_top', 0.75, (0, 255, 0))
+        #cv2.imshow('Image', img)
+        #while True:
+        #    key = cv2.waitKey(1)
+        #    if key == ord('q'):
+        #        break
+    groups = group_columns(res_sticker[0]) + group_columns(res_sticker[1])
+    groups.sort(key=len)
+    groups = groups[::-1]
+    groups = groups[len(groups)-len(max(res_top)):len(groups)]
+    #print(groups)
+    cnt = 0
+    for e in groups: cnt += len(e)
+    ce = f"{ds[i][1]},{cnt},0,0\n"
+    if cnt == int(ds[i][2][0]):
+        cnt_right += 1
+    print(ce)
+    csv_entries += ce
 cv2.destroyAllWindows()
+
+with open("./results/result.csv", "w") as f:
+    f.write(csv_entries)
+
+print(f"Правильно: {cnt_right}/{len(ds)}")
