@@ -49,10 +49,14 @@ with open('./generated_dataset/data.yaml', 'w') as file:
 
 bpy.ops.wm.open_mainfile(filepath="scene.blend")
 main_scene = bpy.data.scenes["Scene"]
-main_scene.render.engine = 'BLENDER_EEVEE_NEXT'
-main_scene.render.resolution_x = 80
-main_scene.render.resolution_y = 80
-main_scene.eevee.taa_render_samples = 4
+main_scene.render.engine = 'BLENDER_WORKBENCH'
+main_scene.render.resolution_x = 100
+main_scene.render.resolution_y = 100
+
+main_scene.display.shading.light = 'STUDIO'
+main_scene.display.shading.color_type = 'TEXTURE'
+main_scene.display.shading.show_shadows = False
+main_scene.display.shading.show_cavity = False
 
 def save_label(fpath, fine_tuning_values):
     with open(fpath, "w") as f:
