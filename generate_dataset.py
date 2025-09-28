@@ -6,7 +6,7 @@ from random import random
 import yaml
 
 
-def obj_place(obj_name, x, y, z):
+def obj_place(scene, obj_name, x, y, z):
     obj = scene.objects[obj_name]
     #dim = obj.dimensions
     new_obj = obj.copy()
@@ -18,8 +18,8 @@ def obj_place(obj_name, x, y, z):
 def rnd(rmin, rmax):
     return rmin+random()*(rmax-rmin)
 
-def obj_random_place(obj_name):
-    return obj_place(obj_name, rnd(-0.8, 0.8), rnd(-0.8, 0.8), rnd(0.0, 1.5))
+def obj_random_place(scene, obj_name):
+    return obj_place(scene, obj_name, rnd(-0.8, 0.8), rnd(-0.8, 0.8), rnd(0.0, 1.5))
 
 # Vars
 
@@ -54,13 +54,21 @@ main_scene.render.resolution_x = 80
 main_scene.render.resolution_y = 80
 main_scene.eevee.taa_render_samples = 4
 
-for i in range(5):
+def save_label(fpath, fine_tuning_values):
+    with open(fpath, "w") as f:
+        s = ""
+        for e in fine_tuning_values:
+            s += " ".join(map(str, e))
+            s += "\n"
+        f.write(s)
+
+def generate_render(dataset_entry_type):
     scene = main_scene.copy()
     bpy.context.window.scene = scene
 
     objs = []
     for j in range(10):
-        objs.append(obj_random_place(class_names[j%3]))
+        objs.append(obj_random_place(scene, class_names[j%3]))
 
     fine_tuning_values_left = []
     fine_tuning_values_right = []
@@ -73,12 +81,19 @@ for i in range(5):
     cam1 = scene.objects['camera1']
     cam2 = scene.objects['camera2']
 
-    scene.render.filepath = f"./left{i}.png"
+    scene.render.filepath = f"./generated_dataset/values/{dataset_entry_type}/left{i}.png"
     scene.camera = cam1
     bpy.ops.render.render(write_still=True)
+    save_label(f"./generated_dataset/labels/{dataset_entry_type}/left{i}.txt", fine_tuning_values_left)
 
-    scene.render.filepath = f"./right{i}.png"
+    scene.render.filepath = f"./generated_dataset/values/{dataset_entry_type}/right{i}.png"
     scene.camera = cam2
     bpy.ops.render.render(write_still=True)
+    save_label(f"./generated_dataset/labels/{dataset_entry_type}/right{i}.txt", fine_tuning_values_right)
 
     bpy.data.scenes.remove(scene)
+
+for i in range(5):
+    generate_render("train")
+for i in range(5):
+    generate_render("val")
