@@ -7,6 +7,12 @@ pip install pyyaml
 blender --background --python generate_dataset.py
 ```
 
+## Training
+```sh
+git submodule init
+git submodule update
+```
+
 # Old README
 ## Структура репозитория:
 * Папка images — для загрузки тестовых изображений (содержимое будет заменено при проверке) 
