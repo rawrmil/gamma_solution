@@ -22,7 +22,7 @@ def get_entries():
 
 def get_dataset():
     ve = get_entries()
-    dataset = [(e['dpath'], e['values']) for e in ve]
+    dataset = [(e['dpath'], e['name'], e['values']) for e in ve]
     return dataset
 
 def write_to_csv(fname):
