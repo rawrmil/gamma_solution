@@ -5,9 +5,15 @@ services:
     volumes:
       - ./images:/root/images
       - ./results:/root/results
-      - ./check_files.py:/root/check_files.py
+      - ./dataset.py:/root/dataset.py
+      - ./templates:/root/templates
+      - ./template_matching.py:/root/template_matching.py
     working_dir: /root
     tty: true
     stdin_open: true
     entrypoint: >
-      bash -c "python3 check_files.py && cat results/result.csv"
+      bash -c "
+        pip install --no-cache-dir opencv-python-headless &&
+        python3 ./template_matching.py &&
+        cat results/result.csv
+      "

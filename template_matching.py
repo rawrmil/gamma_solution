@@ -43,53 +43,44 @@ def find_templates(img, templ_group, thr, col):
         show_matching_results(img, ls_template, res_points, col)
     return all_res_points
 
-def group_columns(points):
-    points = points[:]
-    groups = {}
-    for i, e in enumerate(points):
-        r = round(e[0]/30)*30
-        if groups.get(r) == None:
-            groups[r] = []
-        groups[r].append(e[0])
-    return list(groups.values())
-
-csv_entries = "dir_name,laptop,tablet,group_box\n"
+csv_entries = "dir_name,laptop,tablet,group_boxn\n"
+print("dir_name,laptop,tablet,group_boxn")
 
 #cv2.namedWindow('Image', cv2.WINDOW_NORMAL)
 #cv2.resizeWindow('Image', 800, 600)
 
-cnt_right = 0
-for i in range(1, len(ds)):
-    res_sticker = [0]*2
-    res_top = [0]*2
+cnt1_right = 0
+cnt2_right = 0
+for i in range(0, len(ds)):
+    res_laptop_sticker = [0]*2
+    res_tablet_sticker = [0]*2
     for j, k in enumerate(['left', 'right']):
         test_entry = ds[i][0]
-        print(f"{test_entry}/{k}.png")
+        #print(f"{test_entry}/{k}.png")
         img = cv2.imread(f"{test_entry}/{k}.png")
         img = img[0:1041, 405:1464]
         #find_templates(img, './templates/tablet_sticker', 0.75, (255, 0, 0))
-        res_sticker[j] = find_templates(img, './templates/laptop_sticker', 0.75, (255, 0, 0))
-        res_top[j] = find_templates(img, './templates/laptop_top', 0.75, (0, 255, 0))
+        res_laptop_sticker[j] = find_templates(img, './templates/laptop_sticker', 0.75, (255, 0, 0))
+        res_tablet_sticker[j] = find_templates(img, './templates/tablet_sticker', 0.75, (255, 0, 0))
+        #res_top[j] = find_templates(img, './templates/laptop_top', 0.75, (0, 255, 0))
         #cv2.imshow('Image', img)
         #while True:
         #    key = cv2.waitKey(1)
         #    if key == ord('q'):
         #        break
-    groups = group_columns(res_sticker[0]) + group_columns(res_sticker[1])
-    groups.sort(key=len)
-    groups = groups[::-1]
-    groups = groups[len(groups)-len(max(res_top)):len(groups)]
-    #print(groups)
-    cnt = 0
-    for e in groups: cnt += len(e)
-    ce = f"{ds[i][1]},{cnt},0,0\n"
-    if cnt == int(ds[i][2][0]):
-        cnt_right += 1
-    print(ce)
-    csv_entries += ce
-cv2.destroyAllWindows()
+    cnt1 = max(len(res_laptop_sticker[0]), len(res_laptop_sticker[0]))
+    cnt2 = max(len(res_tablet_sticker[0]), len(res_tablet_sticker[0]))
+    csv_line = f"{ds[i][1]},{cnt1},{cnt2},0"
+    print(csv_line)
+    csv_entries += csv_line+"\n"
+    if cnt1 == int(ds[i][2][0]):
+        cnt1_right += 1
+    if cnt2 == int(ds[i][2][1]):
+        cnt2_right += 1
+#cv2.destroyAllWindows()
 
 with open("./results/result.csv", "w") as f:
     f.write(csv_entries)
 
-print(f"Правильно: {cnt_right}/{len(ds)}")
+#print(f"Ноуты: {cnt1_right}/{len(ds)}")
+#print(f"Планшеты: {cnt2_right}/{len(ds)}")
