@@ -49,8 +49,9 @@ for i in range(len(ds)):
         print(f"{test_entry}/{k}.png")
         img = cv2.imread(f"{test_entry}/{k}.png")
         img = img[0:1041, 405:1464]
-        find_templates(img, './templates/tablet_sticker', 0.70, (255, 0, 0))
-        find_templates(img, './templates/tablet_top', 0.98, (0, 255, 0))
+        #find_templates(img, './templates/tablet_sticker', 0.75, (255, 0, 0))
+        find_templates(img, './templates/laptop_sticker', 0.75, (255, 0, 0))
+        find_templates(img, './templates/laptop_top', 0.75, (0, 255, 0))
         cv2.imshow('Image', img)
         while True:
             key = cv2.waitKey(1)
