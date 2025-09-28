@@ -5,7 +5,6 @@ import shutil
 from random import random
 import yaml
 
-
 def obj_place(scene, obj_name, x, y, z):
     obj = scene.objects[obj_name]
     #dim = obj.dimensions
@@ -30,8 +29,8 @@ class_names = ['obj_tablet', 'obj_laptop', 'obj_group_box']
 if os.path.isdir("./generated_dataset"):
     shutil.rmtree("./generated_dataset")
 os.makedirs("./generated_dataset", exist_ok=True)
-os.makedirs("./generated_dataset/values/train", exist_ok=True)
-os.makedirs("./generated_dataset/values/val", exist_ok=True)
+os.makedirs("./generated_dataset/images/train", exist_ok=True)
+os.makedirs("./generated_dataset/images/val", exist_ok=True)
 os.makedirs("./generated_dataset/labels/train", exist_ok=True)
 os.makedirs("./generated_dataset/labels/val", exist_ok=True)
 
@@ -79,8 +78,36 @@ def generate_render(dataset_entry_type):
     for o in objs:
         obj_name, loc, dim = o[0], o[1], o[2].dimensions
         obj_index = class_names.index(obj_name)
-        fine_tuning_values_left.append([obj_index, +loc[0], +loc[1], loc[2], dim[0], dim[1], dim[2]])
-        fine_tuning_values_right.append([obj_index, -loc[0], -loc[1], loc[2], dim[0], dim[1], dim[2]])
+        fine_tuning_values_left.append([
+            obj_index,
+            0,
+            45,
+            0,
+            0,
+            0,
+            dim[0],
+            dim[1],
+            dim[2],
+            +loc[0],
+            +loc[1],
+            +loc[2],
+            0
+        ])
+        fine_tuning_values_right.append([
+            obj_index,
+            0,
+            45,
+            0,
+            0,
+            0,
+            dim[0],
+            dim[1],
+            dim[2],
+            -loc[0],
+            -loc[1],
+            +loc[2],
+            0
+        ])
 
     cam1 = scene.objects['camera1']
     cam2 = scene.objects['camera2']
@@ -97,7 +124,7 @@ def generate_render(dataset_entry_type):
 
     bpy.data.scenes.remove(scene)
 
-for i in range(3000):
+for i in range(5):
     generate_render("train")
-for i in range(500):
+for i in range(2):
     generate_render("val")

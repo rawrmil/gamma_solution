@@ -11,6 +11,7 @@ blender --background --python generate_dataset.py
 ```sh
 git submodule init
 git submodule update
+pip install torch
 ```
 
 # Old README
