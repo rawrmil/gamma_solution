@@ -97,7 +97,7 @@ def generate_render(dataset_entry_type):
 
     bpy.data.scenes.remove(scene)
 
-for i in range(5):
+for i in range(3000):
     generate_render("train")
-for i in range(5):
+for i in range(500):
     generate_render("val")
