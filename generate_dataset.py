@@ -1,7 +1,9 @@
 import bpy
 import math
 import os
+import shutil
 from random import random
+import yaml
 
 
 def obj_place(obj_name, x, y, z):
@@ -23,34 +25,60 @@ def obj_random_place(obj_name):
 
 class_names = ['obj_tablet', 'obj_laptop', 'obj_group_box']
 
+# Dataset resources
+
+if os.path.isdir("./generated_dataset"):
+    shutil.rmtree("./generated_dataset")
+os.makedirs("./generated_dataset", exist_ok=True)
+os.makedirs("./generated_dataset/values/train", exist_ok=True)
+os.makedirs("./generated_dataset/values/val", exist_ok=True)
+os.makedirs("./generated_dataset/labels/train", exist_ok=True)
+os.makedirs("./generated_dataset/labels/val", exist_ok=True)
+
+dataset_data = {
+    'train': './generated_dataset/images/train',
+    'val': './generated_dataset/images/val',
+    'nc': len(class_names),
+    'names': class_names
+}
+
+with open('./generated_dataset/data.yaml', 'w') as file:
+    yaml.dump(dataset_data, file, default_flow_style=False)
+
 # Render
 
 bpy.ops.wm.open_mainfile(filepath="scene.blend")
-scene = bpy.data.scenes["Scene"]
+main_scene = bpy.data.scenes["Scene"]
+main_scene.render.engine = 'BLENDER_EEVEE_NEXT'
+main_scene.render.resolution_x = 80
+main_scene.render.resolution_y = 80
+main_scene.eevee.taa_render_samples = 4
 
-objs = []
-for i in range(10):
-    objs.append(obj_random_place(class_names[i%3]))
+for i in range(5):
+    scene = main_scene.copy()
+    bpy.context.window.scene = scene
 
-fine_tuning_values = []
-for o in objs:
-    obj_name, loc, dim = o[0], o[1], o[2].dimensions
-    obj_index = class_names.index(obj_name)
-    fine_tuning_values.append([obj_index, loc[0], loc[1], loc[2], dim[0], dim[1], dim[2]])
-print(fine_tuning_values)
+    objs = []
+    for j in range(10):
+        objs.append(obj_random_place(class_names[j%3]))
 
-scene.render.engine = 'BLENDER_EEVEE_NEXT'
-scene.render.resolution_x = 100
-scene.render.resolution_y = 100
-scene.eevee.taa_render_samples = 4
+    fine_tuning_values_left = []
+    fine_tuning_values_right = []
+    for o in objs:
+        obj_name, loc, dim = o[0], o[1], o[2].dimensions
+        obj_index = class_names.index(obj_name)
+        fine_tuning_values_left.append([obj_index, +loc[0], +loc[1], loc[2], dim[0], dim[1], dim[2]])
+        fine_tuning_values_right.append([obj_index, -loc[0], -loc[1], loc[2], dim[0], dim[1], dim[2]])
 
-cam1 = scene.objects['camera1']
-cam2 = scene.objects['camera2']
+    cam1 = scene.objects['camera1']
+    cam2 = scene.objects['camera2']
 
-scene.render.filepath = './left.png'
-scene.camera = cam1
-bpy.ops.render.render(write_still=True)
+    scene.render.filepath = f"./left{i}.png"
+    scene.camera = cam1
+    bpy.ops.render.render(write_still=True)
 
-scene.render.filepath = './right.png'
-scene.camera = cam2
-bpy.ops.render.render(write_still=True)
+    scene.render.filepath = f"./right{i}.png"
+    scene.camera = cam2
+    bpy.ops.render.render(write_still=True)
+
+    bpy.data.scenes.remove(scene)

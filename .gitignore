@@ -1,3 +1,4 @@
 *.blend1
-/left.png
-/right.png
+/left*.png
+/right*.png
+/generated_dataset
